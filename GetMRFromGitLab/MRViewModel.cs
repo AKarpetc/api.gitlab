@@ -28,7 +28,9 @@ namespace GetMRFromGitLab
         public User assignee { get; set; }
 
         public User author { get; set; }
-}
+
+        public string[] Labels { get; set; }
+    }
 
     public class User
     {

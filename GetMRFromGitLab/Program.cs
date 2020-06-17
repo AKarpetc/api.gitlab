@@ -33,6 +33,7 @@ namespace GetMRFromGitLab
                 excelWorksheet.Cells[i, 10].Value = "Ссылка";
                 excelWorksheet.Cells[i, 11].Value = "Создал";
                 excelWorksheet.Cells[i, 12].Value = "Принял";
+                excelWorksheet.Cells[i, 13].Value = "Метки";
 
                 i++;
                 foreach (var mr in mrs)
@@ -49,16 +50,30 @@ namespace GetMRFromGitLab
                     excelWorksheet.Cells[i, 9].Value = mr.updated_at.ToShortDateString();
                     excelWorksheet.Cells[i, 10].Value = mr.web_url;
                     excelWorksheet.Cells[i, 11].Value = mr.author?.name;
-                    excelWorksheet.Cells[i, 12].Value = mr.assignee?.name;
-
+                    excelWorksheet.Cells[i, 12].Value = (mr.assignee?.name) ?? mr.author?.name;
+                    excelWorksheet.Cells[i, 13].Value = string.Join(", ", mr.Labels);
                     i++;
 
                 }
 
-               
+                DriveInfo myDrive = DriveInfo.GetDrives().FirstOrDefault(x => x.DriveType == DriveType.Fixed);
 
-                FileInfo excelFile = new FileInfo(@"D:\test.xlsx");
+                var fileName = $@"{myDrive.Name}Temp\ImportFromGit-{DateTime.Now.ToShortDateString()}.xlsx";
+
+                if (File.Exists(fileName))
+                {
+                    File.Delete(fileName);
+                };
+
+                FileInfo excelFile = new FileInfo(fileName);
+
+
+
                 excel.SaveAs(excelFile);
+
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Файл сохранен по пути " + fileName);
             }
 
         }
@@ -69,9 +84,9 @@ namespace GetMRFromGitLab
 
             for (int i = 1; i <= 36; i++)
             {
-                WebRequest request = WebRequest.Create("http://git/api/v4/projects/18/merge_requests?state=merged&scope=all&page="+i);
+                WebRequest request = WebRequest.Create("http://git/api/v4/projects/18/merge_requests?state=merged&scope=all&page=" + i);
                 // If required by the server, set the credentials.
-                request.Headers.Add("Private-Token:DT9gHYJxNWHc7df68rSU");
+                request.Headers.Add("Private-Token:GGy1nCUCtzmaYfeZz8s_");
                 // Get the response.
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 // Display the status.
