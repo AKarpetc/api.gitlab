@@ -30,7 +30,7 @@ namespace GITLab.AP.Adapter.Services
             int count = 1;
             while (count > 0)
             {
-                WebRequest request = WebRequest.Create($"{_url}?state={state}&scope=all&page=" + i);
+                WebRequest request = WebRequest.Create($"{_url}merge_requests?state={state}&scope=all&page=" + i);
                 request.Headers.Add($"Private-Token:{_privateToken}");
 
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();

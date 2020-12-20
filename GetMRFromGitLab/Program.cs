@@ -14,6 +14,15 @@ namespace GetMRFromGitLab
 {
     class Program
     {
+        static MergeRequestService mergeRequestService;
+        static Program()
+        {
+            var url = "http://git/api/v4/projects/18/";
+            var token = "GGy1nCUCtzmaYfeZz8s_";
+
+            mergeRequestService = new MergeRequestService(url, token);
+        }
+
         static void ListToExcel(List<MergeRequestGetDTO> mrs)
         {
             using (ExcelPackage excel = new ExcelPackage())
@@ -81,13 +90,9 @@ namespace GetMRFromGitLab
         }
         static void Main(string[] args)
         {
-            var url = "http://git/api/v4/projects/18/merge_requests";
-            var token = "GGy1nCUCtzmaYfeZz8s_";
 
-            MergeRequestService mergeRequestService = new MergeRequestService(url, token);
 
             var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
-
 
             ListToExcel(mrs.ToList());
 
@@ -96,6 +101,7 @@ namespace GetMRFromGitLab
 
         public void GetFromReleaseToRelease()
         {
+            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
 
         }
     }
