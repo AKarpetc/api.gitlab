@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using GITLab.AP.Adapter.DTO;
+using GITLab.AP.Adapter.Services;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,7 @@ namespace GetMRFromGitLab
 {
     class Program
     {
-        static void ListToExcel(List<MRViewModel> mrs)
+        static void ListToExcel(List<MergeRequestGetDTO> mrs)
         {
             using (ExcelPackage excel = new ExcelPackage())
             {
@@ -79,43 +81,21 @@ namespace GetMRFromGitLab
         }
         static void Main(string[] args)
         {
-            var mrCollection = new List<MRViewModel>();
+            var url = "http://git/api/v4/projects/18/merge_requests";
+            var token = "GGy1nCUCtzmaYfeZz8s_";
+
+            MergeRequestService mergeRequestService = new MergeRequestService(url, token);
+
+            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
 
 
-            for (int i = 1; i <= 36; i++)
-            {
-                WebRequest request = WebRequest.Create("http://git/api/v4/projects/18/merge_requests?state=merged&scope=all&page=" + i);
-                // If required by the server, set the credentials.
-                request.Headers.Add("Private-Token:GGy1nCUCtzmaYfeZz8s_");
-                // Get the response.
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                // Display the status.
-                Console.WriteLine(response.StatusDescription);
-                // Get the stream containing content returned by the server.
-                Stream dataStream = response.GetResponseStream();
-                // Open the stream using a StreamReader for easy access.
-                StreamReader reader = new StreamReader(dataStream);
-                // Read the content.
-                string responseFromServer = reader.ReadToEnd();
-                // Display the content.
-
-                var collection = JsonConvert.DeserializeObject<List<MRViewModel>>(responseFromServer);
-
-                mrCollection.AddRange(collection);
-
-                Console.WriteLine(responseFromServer);
-
-
-                // Cleanup the streams and the response.
-
-                reader.Close();
-                dataStream.Close();
-                response.Close();
-            }
-
-            ListToExcel(mrCollection);
+            ListToExcel(mrs.ToList());
 
             Console.ReadLine();
+        }
+
+        public void GetFromReleaseToRelease()
+        {
 
         }
     }

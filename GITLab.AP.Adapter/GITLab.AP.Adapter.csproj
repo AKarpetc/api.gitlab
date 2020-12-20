@@ -45,8 +45,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTO\MergeRequestGetDTO.cs" />
+    <Compile Include="DTO\Enums\MergeStates.cs" />
     <Compile Include="DTO\UserDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\MergeRequestService.cs" />
+    <Compile Include="Services\ReleasesService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -9,11 +9,11 @@ namespace GITLab.AP.Adapter.DTO
     public class MergeRequestGetDTO
     {
         public int id { get; set; }
-       
+
         public int iid { get; set; }
-      
+
         public int project_id { get; set; }
-       
+
         public string title { get; set; }
 
         public string description { get; set; }
@@ -21,6 +21,8 @@ namespace GITLab.AP.Adapter.DTO
         public DateTime created_at { get; set; }
 
         public DateTime updated_at { get; set; }
+
+        public DateTime merged_at { get; set; }
 
         public string target_branch { get; set; }
 
