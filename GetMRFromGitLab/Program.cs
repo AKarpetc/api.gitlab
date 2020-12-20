@@ -94,14 +94,20 @@ namespace GetMRFromGitLab
 
             var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
 
-            ListToExcel(mrs.ToList());
-
+          //ListToExcel(mrs.ToList());
+            
+            GetFromReleaseToRelease();
+           
             Console.ReadLine();
         }
 
-        public void GetFromReleaseToRelease()
+        static void GetFromReleaseToRelease()
         {
-            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
+            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-10));
+
+            var lastReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x=>x.Labels.Contains("Release"));
+
+            var Releases = mrs.Where(x => x.merged_at > lastReleases.merged_at);
 
         }
     }

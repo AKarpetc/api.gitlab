@@ -30,7 +30,7 @@ namespace GITLab.AP.Adapter.Services
             int count = 1;
             while (count > 0)
             {
-                WebRequest request = WebRequest.Create($"{_url}merge_requests?state={state}&scope=all&page=" + i);
+                WebRequest request = WebRequest.Create($"{_url}merge_requests?&sort=desc&state={state}&scope=all&page=" + i);
                 request.Headers.Add($"Private-Token:{_privateToken}");
 
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -42,7 +42,7 @@ namespace GITLab.AP.Adapter.Services
                 count = collection.Count();
                 mrCollection.AddRange(collection.Where(x => x.merged_at > dateStart));
 
-                if (mrCollection.Min(x => x.merged_at) < dateStart)
+                if (!collection.Any() || collection.Min(x => x.merged_at) < dateStart)
                 {
                     break;
                 }
