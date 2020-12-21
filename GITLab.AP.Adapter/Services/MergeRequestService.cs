@@ -22,9 +22,9 @@ namespace GITLab.AP.Adapter.Services
             _privateToken = privateToken;
         }
 
-        public IEnumerable<MergeRequestGetDTO> GetAll(DateTime dateStart, MergeStates state = MergeStates.merged)
+        public IEnumerable<MergeRequestGet> GetAll(DateTime dateStart, MergeStates state = MergeStates.merged)
         {
-            var mrCollection = new List<MergeRequestGetDTO>();
+            var mrCollection = new List<MergeRequestGet>();
 
             int i = 1;
             int count = 1;
@@ -38,7 +38,7 @@ namespace GITLab.AP.Adapter.Services
                 Stream dataStream = response.GetResponseStream();
                 StreamReader reader = new StreamReader(dataStream);
                 string responseFromServer = reader.ReadToEnd();
-                var collection = JsonConvert.DeserializeObject<List<MergeRequestGetDTO>>(responseFromServer);
+                var collection = JsonConvert.DeserializeObject<List<MergeRequestGet>>(responseFromServer);
                 count = collection.Count();
                 mrCollection.AddRange(collection.Where(x => x.merged_at > dateStart));
 

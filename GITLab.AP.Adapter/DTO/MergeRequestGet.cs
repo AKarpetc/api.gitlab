@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GITLab.AP.Adapter.DTO
 {
-    public class MergeRequestGetDTO
+    public class MergeRequestGet
     {
         public int id { get; set; }
 
@@ -30,10 +30,11 @@ namespace GITLab.AP.Adapter.DTO
 
         public string web_url { get; set; }
 
-        public UserDTO assignee { get; set; }
+        public User assignee { get; set; }
 
-        public UserDTO author { get; set; }
+        public User author { get; set; }
 
         public string[] Labels { get; set; }
     }
+
 }

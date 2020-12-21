@@ -15,15 +15,18 @@ namespace GetMRFromGitLab
     class Program
     {
         static MergeRequestService mergeRequestService;
+        static ReleasesService releasesService;
         static Program()
         {
             var url = "http://git/api/v4/projects/18/";
             var token = "GGy1nCUCtzmaYfeZz8s_";
 
             mergeRequestService = new MergeRequestService(url, token);
+
+            releasesService = new ReleasesService(url, token);
         }
 
-        static void ListToExcel(List<MergeRequestGetDTO> mrs)
+        static void ListToExcel(List<MergeRequestGet> mrs)
         {
             using (ExcelPackage excel = new ExcelPackage())
             {
@@ -101,7 +104,7 @@ namespace GetMRFromGitLab
             Console.ReadLine();
         }
 
-        static void CreateRelease(List<MergeRequestGetDTO> mrs, string dates)
+        static void CreateRelease(List<MergeRequestGet> mrs, string dates, string version)
         {
             using (ExcelPackage excel = new ExcelPackage())
             {
@@ -113,13 +116,16 @@ namespace GetMRFromGitLab
                 excelWorksheet.Cells[i, 1].Value = "Релиз системы спринта за " + dates;
 
                 i++;
+                i++;
                 foreach (var mr in mrs)
                 {
-                    excelWorksheet.Cells[i, 1].Value = (i - 1).ToString();
+                    excelWorksheet.Cells[i, 1].Value = (i - 2).ToString();
                     excelWorksheet.Cells[i, 2].Value = mr.title;
                     excelWorksheet.Cells[i, 3].Value = mr.description;
                     i++;
                 }
+                i++;
+                excelWorksheet.Cells[i, 1].Value = version;
 
                 DriveInfo myDrive = DriveInfo.GetDrives().FirstOrDefault(x => x.DriveType == DriveType.Fixed);
 
@@ -143,13 +149,13 @@ namespace GetMRFromGitLab
 
         static void GetFromReleaseToRelease()
         {
-            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-10));
+            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-18));
 
             var lastReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
 
             var firstReleases = mrs.OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
 
-            var Releases = mrs.Where(x => x.merged_at > lastReleases.merged_at && x.merged_at < firstReleases.merged_at);
+            var mrsToRelease = mrs.Where(x => x.merged_at > lastReleases.merged_at && x.merged_at < firstReleases.merged_at);
 
             if (lastReleases == firstReleases)
             {
@@ -157,7 +163,15 @@ namespace GetMRFromGitLab
                 return;
             }
 
-            CreateRelease(Releases.ToList(), lastReleases.merged_at.ToString("dd.MM.yy") + "-" + firstReleases.merged_at.ToString("dd.MM.yy"));
+            var releases = releasesService.GetAllReleases();
+
+            var dates = lastReleases.merged_at.ToString("dd.MM.yy") + "-" + firstReleases.merged_at.ToString("dd.MM.yy");
+
+            var lasrRelease = releases.OrderByDescending(x => x.created_at).FirstOrDefault();
+
+            var version = lasrRelease.tag_name.Split('.')[0] + "." + (Convert.ToInt32(lasrRelease.tag_name.Split('.')[1]) + 1).ToString();
+
+            CreateRelease(mrsToRelease.ToList(), dates, version);
         }
     }
 }
