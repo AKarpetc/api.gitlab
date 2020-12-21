@@ -94,21 +94,70 @@ namespace GetMRFromGitLab
 
             var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
 
-          //ListToExcel(mrs.ToList());
-            
+            //ListToExcel(mrs.ToList());
+
             GetFromReleaseToRelease();
-           
+
             Console.ReadLine();
+        }
+
+        static void CreateRelease(List<MergeRequestGetDTO> mrs, string dates)
+        {
+            using (ExcelPackage excel = new ExcelPackage())
+            {
+                excel.Workbook.Worksheets.Add("Worksheet1");
+                var excelWorksheet = excel.Workbook.Worksheets["Worksheet1"];
+
+                int i = 1;
+
+                excelWorksheet.Cells[i, 1].Value = "Релиз системы спринта за " + dates;
+
+                i++;
+                foreach (var mr in mrs)
+                {
+                    excelWorksheet.Cells[i, 1].Value = (i - 1).ToString();
+                    excelWorksheet.Cells[i, 2].Value = mr.title;
+                    excelWorksheet.Cells[i, 3].Value = mr.description;
+                    i++;
+                }
+
+                DriveInfo myDrive = DriveInfo.GetDrives().FirstOrDefault(x => x.DriveType == DriveType.Fixed);
+
+                var fileName = $@"{myDrive.Name}Temp\Releases-{DateTime.Now.ToShortDateString()}.xlsx";
+
+                if (File.Exists(fileName))
+                {
+                    File.Delete(fileName);
+                };
+
+                FileInfo excelFile = new FileInfo(fileName);
+
+                excel.SaveAs(excelFile);
+
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Файл сохранен по пути " + fileName);
+            }
+
         }
 
         static void GetFromReleaseToRelease()
         {
             var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-10));
 
-            var lastReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x=>x.Labels.Contains("Release"));
+            var lastReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
 
-            var Releases = mrs.Where(x => x.merged_at > lastReleases.merged_at);
+            var firstReleases = mrs.OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
 
+            var Releases = mrs.Where(x => x.merged_at > lastReleases.merged_at && x.merged_at < firstReleases.merged_at);
+
+            if (lastReleases == firstReleases)
+            {
+                Console.WriteLine("За последнии 10 дней найден только 1 релиз");
+                return;
+            }
+
+            CreateRelease(Releases.ToList(), lastReleases.merged_at.ToString("dd.MM.yy") + "-" + firstReleases.merged_at.ToString("dd.MM.yy"));
         }
     }
 }
