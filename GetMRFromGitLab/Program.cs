@@ -115,16 +115,17 @@ namespace GetMRFromGitLab
 
                 excelWorksheet.Cells[i, 1].Value = "Релиз системы спринта за " + dates;
 
-                i++;
-                i++;
+                i = i + 2;
+                int number = 1;
                 foreach (var mr in mrs)
                 {
-                    excelWorksheet.Cells[i, 1].Value = (i - 2).ToString();
+                    excelWorksheet.Cells[i, 1].Value = (number).ToString();
                     excelWorksheet.Cells[i, 2].Value = mr.title;
                     excelWorksheet.Cells[i, 3].Value = mr.description;
-                    i++;
+                    i=i+2;
+                    number++;
                 }
-                i++;
+                i = i + 2;
                 excelWorksheet.Cells[i, 1].Value = version;
 
                 DriveInfo myDrive = DriveInfo.GetDrives().FirstOrDefault(x => x.DriveType == DriveType.Fixed);
@@ -149,15 +150,15 @@ namespace GetMRFromGitLab
 
         static void GetFromReleaseToRelease()
         {
-            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-18));
+            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-12)).Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
 
-            var lastReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
+            var lastMRReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
 
-            var firstReleases = mrs.OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
+            var firstMRReleases = mrs.OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
 
-            var mrsToRelease = mrs.Where(x => x.merged_at > lastReleases.merged_at && x.merged_at < firstReleases.merged_at);
+            var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at);
 
-            if (lastReleases == firstReleases)
+            if (lastMRReleases == firstMRReleases)
             {
                 Console.WriteLine("За последнии 10 дней найден только 1 релиз");
                 return;
@@ -165,11 +166,11 @@ namespace GetMRFromGitLab
 
             var releases = releasesService.GetAllReleases();
 
-            var dates = lastReleases.merged_at.ToString("dd.MM.yy") + "-" + firstReleases.merged_at.ToString("dd.MM.yy");
+            var dates = lastMRReleases.merged_at.ToString("dd.MM.yy") + "-" + firstMRReleases.merged_at.ToString("dd.MM.yy");
 
-            var lasrRelease = releases.OrderByDescending(x => x.created_at).FirstOrDefault();
+            var lastRelease = releases.OrderByDescending(x => x.created_at).FirstOrDefault();
 
-            var version = lasrRelease.tag_name.Split('.')[0] + "." + (Convert.ToInt32(lasrRelease.tag_name.Split('.')[1]) + 1).ToString();
+            var version = lastRelease.tag_name.Split('.')[0] + "." + (Convert.ToInt32(lastRelease.tag_name.Split('.')[1]) + 1).ToString();
 
             CreateRelease(mrsToRelease.ToList(), dates, version);
         }
