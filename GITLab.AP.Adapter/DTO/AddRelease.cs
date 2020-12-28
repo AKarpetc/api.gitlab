@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,9 @@ namespace GITLab.AP.Adapter.DTO
         public string description { get; set; }
         public string[] milestones { get; set; }
         public Assets assets { get; set; }
+
+        [JsonProperty("ref")]
+        public string Ref { get; set; }
     }
 
 }

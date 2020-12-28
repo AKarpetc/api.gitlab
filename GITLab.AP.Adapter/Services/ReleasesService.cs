@@ -44,6 +44,7 @@ namespace GITLab.AP.Adapter.Services
         {
             WebRequest request = WebRequest.Create($"{_url}releases");
             request.Headers.Add($"Private-Token:{_privateToken}");
+
             request.ContentType = "application/json";
             request.Method = "POST";
 
@@ -53,6 +54,28 @@ namespace GITLab.AP.Adapter.Services
 
                 streamWriter.Write(json);
             }
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            Stream dataStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream);
+            string responseFromServer = reader.ReadToEnd();
+            var release = JsonConvert.DeserializeObject<Release>(responseFromServer);
+
+            reader.Close();
+            dataStream.Close();
+            response.Close();
+
+            return release;
+        }
+
+        public Release Delete(string tag_name)
+        {
+            WebRequest request = WebRequest.Create($"{_url}releases/${tag_name}");
+            request.Headers.Add($"Private-Token:{_privateToken}");
+
+            request.ContentType = "application/json";
+            request.Method = "DELETE";
 
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 

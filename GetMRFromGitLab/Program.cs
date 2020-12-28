@@ -1,5 +1,8 @@
 ﻿using GITLab.AP.Adapter.DTO;
 using GITLab.AP.Adapter.Services;
+using GitLabApiClient;
+using GitLabApiClient.Internal.Paths;
+using GitLabApiClient.Models.Releases.Requests;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
@@ -17,14 +20,17 @@ namespace GetMRFromGitLab
         private const string RELEASE_NAME = "Релиз системы спринта за ";
         static MergeRequestService mergeRequestService;
         static ReleasesService releasesService;
+        static GitLabClient client;
         static Program()
         {
-            var url = "http://git/api/v4/projects/18/";
-            var token = "GGy1nCUCtzmaYfeZz8s_";
+            var url = "http://git.kazzinc.kz/api/v4/projects/18/";
+            var token = "ZBmCg_M-ib9EzY8j2ZHg";
 
             mergeRequestService = new MergeRequestService(url, token);
 
             releasesService = new ReleasesService(url, token);
+
+            client = new GitLabClient("http://git.kazzinc.kz", token);
         }
 
         static void ListToExcel(List<MergeRequestGet> mrs)
@@ -109,6 +115,8 @@ namespace GetMRFromGitLab
 
             ToGit(mrs, dates, version);
 
+
+
         }
 
         private static void ToGit(List<MergeRequestGet> mrs, string dates, string version)
@@ -124,9 +132,11 @@ namespace GetMRFromGitLab
 
             var newRelease = new AddRelease()
             {
-                tag_name = version,
+                tag_name = "v1.10005",
                 description = descriptoin,
-                name = RELEASE_NAME + dates
+                name = RELEASE_NAME + dates,
+                assets = new Assets(),
+                Ref = "Release"
             };
 
             releasesService.Create(newRelease);
