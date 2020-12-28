@@ -104,7 +104,10 @@ namespace GetMRFromGitLab
 
             //ListToExcel(mrs.ToList());
 
-            GetFromReleaseToRelease();
+            CreateRelease();
+
+            //releasesService.Delete("v1.10005");
+
 
             Console.ReadLine();
         }
@@ -185,7 +188,7 @@ namespace GetMRFromGitLab
             }
         }
 
-        static void GetFromReleaseToRelease()
+        static void CreateRelease()
         {
             var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-12)).Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
 

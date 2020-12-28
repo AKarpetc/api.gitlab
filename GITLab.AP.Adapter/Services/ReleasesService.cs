@@ -71,8 +71,10 @@ namespace GITLab.AP.Adapter.Services
 
         public Release Delete(string tag_name)
         {
-            WebRequest request = WebRequest.Create($"{_url}releases/${tag_name}");
+            WebRequest request = WebRequest.Create($"{_url}releases/{tag_name}");
             request.Headers.Add($"Private-Token:{_privateToken}");
+            
+          //  request.Headers.Add($"User-Agent:GitLabKazzincBot");
 
             request.ContentType = "application/json";
             request.Method = "DELETE";
