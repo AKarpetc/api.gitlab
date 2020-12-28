@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using GITLab.AP.Adapter.DTO;
+using GITLab.AP.Adapter.Services;
+using GitLabApiClient;
+using GitLabApiClient.Internal.Paths;
+using GitLabApiClient.Models.Releases.Requests;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -12,7 +17,23 @@ namespace GetMRFromGitLab
 {
     class Program
     {
-        static void ListToExcel(List<MRViewModel> mrs)
+        private const string RELEASE_NAME = "Релиз системы спринта за ";
+        static MergeRequestService mergeRequestService;
+        static ReleasesService releasesService;
+        static GitLabClient client;
+        static Program()
+        {
+            var url = "http://git.kazzinc.kz/api/v4/projects/18/";
+            var token = "ZBmCg_M-ib9EzY8j2ZHg";
+
+            mergeRequestService = new MergeRequestService(url, token);
+
+            releasesService = new ReleasesService(url, token);
+
+            client = new GitLabClient("http://git.kazzinc.kz", token);
+        }
+
+        static void ListToExcel(List<MergeRequestGet> mrs)
         {
             using (ExcelPackage excel = new ExcelPackage())
             {
@@ -79,43 +100,119 @@ namespace GetMRFromGitLab
         }
         static void Main(string[] args)
         {
-            var mrCollection = new List<MRViewModel>();
+            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
 
+            //ListToExcel(mrs.ToList());
 
-            for (int i = 1; i <= 36; i++)
-            {
-                WebRequest request = WebRequest.Create("http://git/api/v4/projects/18/merge_requests?state=merged&scope=all&page=" + i);
-                // If required by the server, set the credentials.
-                request.Headers.Add("Private-Token:GGy1nCUCtzmaYfeZz8s_");
-                // Get the response.
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                // Display the status.
-                Console.WriteLine(response.StatusDescription);
-                // Get the stream containing content returned by the server.
-                Stream dataStream = response.GetResponseStream();
-                // Open the stream using a StreamReader for easy access.
-                StreamReader reader = new StreamReader(dataStream);
-                // Read the content.
-                string responseFromServer = reader.ReadToEnd();
-                // Display the content.
+            CreateRelease();
 
-                var collection = JsonConvert.DeserializeObject<List<MRViewModel>>(responseFromServer);
+            //releasesService.Delete("v1.10005");
 
-                mrCollection.AddRange(collection);
-
-                Console.WriteLine(responseFromServer);
-
-
-                // Cleanup the streams and the response.
-
-                reader.Close();
-                dataStream.Close();
-                response.Close();
-            }
-
-            ListToExcel(mrCollection);
 
             Console.ReadLine();
+        }
+
+        static void CreateRelease(List<MergeRequestGet> mrs, string dates, string version)
+        {
+            ToExcell(mrs, dates, version);
+
+            ToGit(mrs, dates, version);
+
+
+
+        }
+
+        private static void ToGit(List<MergeRequestGet> mrs, string dates, string version)
+        {
+            var descriptoin = "";
+
+            int number = 1;
+            foreach (var mr in mrs)
+            {
+                descriptoin += $"{(number)}. {mr.title} {mr.description}\n\n";
+                number++;
+            }
+
+            var newRelease = new AddRelease()
+            {
+                tag_name = "v1.10005",
+                description = descriptoin,
+                name = RELEASE_NAME + dates,
+                assets = new Assets(),
+                Ref = "Release"
+            };
+
+            releasesService.Create(newRelease);
+        }
+
+        private static void ToExcell(List<MergeRequestGet> mrs, string dates, string version)
+        {
+            using (ExcelPackage excel = new ExcelPackage())
+            {
+                excel.Workbook.Worksheets.Add("Worksheet1");
+                var excelWorksheet = excel.Workbook.Worksheets["Worksheet1"];
+
+                int i = 1;
+
+                excelWorksheet.Cells[i, 1].Value = RELEASE_NAME + dates;
+
+                i = i + 2;
+                int number = 1;
+                foreach (var mr in mrs)
+                {
+                    excelWorksheet.Cells[i, 1].Value = (number).ToString();
+                    excelWorksheet.Cells[i, 2].Value = mr.title;
+                    excelWorksheet.Cells[i, 3].Value = mr.description;
+                    i = i + 2;
+                    number++;
+                }
+                i = i + 2;
+                excelWorksheet.Cells[i, 1].Value = version;
+
+                DriveInfo myDrive = DriveInfo.GetDrives().FirstOrDefault(x => x.DriveType == DriveType.Fixed);
+
+                var fileName = $@"{myDrive.Name}Temp\Releases-{DateTime.Now.ToShortDateString()}.xlsx";
+
+                if (File.Exists(fileName))
+                {
+                    File.Delete(fileName);
+                };
+
+                FileInfo excelFile = new FileInfo(fileName);
+
+                excel.SaveAs(excelFile);
+
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Файл сохранен по пути " + fileName);
+            }
+        }
+
+        static void CreateRelease()
+        {
+            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-12)).Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
+
+            var lastMRReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
+
+            var firstMRReleases = mrs.OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
+
+            var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at);
+
+            if (lastMRReleases == firstMRReleases)
+            {
+                Console.WriteLine("За последнии 10 дней найден только 1 релиз");
+                return;
+            }
+
+            var releases = releasesService.GetAllReleases();
+
+            var dates = lastMRReleases.merged_at.ToString("dd.MM.yy") + "-" + firstMRReleases.merged_at.ToString("dd.MM.yy");
+
+            var lastRelease = releases.OrderByDescending(x => x.created_at).FirstOrDefault();
+
+            var version = lastRelease.tag_name.Split('.')[0] + "." + (Convert.ToInt32(lastRelease.tag_name.Split('.')[1]) + 1).ToString();
+
+            CreateRelease(mrsToRelease.ToList(), dates, version);
 
         }
     }

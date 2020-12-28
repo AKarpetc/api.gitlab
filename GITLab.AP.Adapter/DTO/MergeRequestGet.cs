@@ -4,13 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GetMRFromGitLab
+namespace GITLab.AP.Adapter.DTO
 {
-    public class MRViewModel
+    public class MergeRequestGet
     {
         public int id { get; set; }
+
         public int iid { get; set; }
+
         public int project_id { get; set; }
+
         public string title { get; set; }
 
         public string description { get; set; }
@@ -18,6 +21,8 @@ namespace GetMRFromGitLab
         public DateTime created_at { get; set; }
 
         public DateTime updated_at { get; set; }
+
+        public DateTime merged_at { get; set; }
 
         public string target_branch { get; set; }
 
@@ -32,13 +37,4 @@ namespace GetMRFromGitLab
         public string[] Labels { get; set; }
     }
 
-    public class User
-    {
-        public int id { get; set; }
-        public string name { get; set; }
-        public string username { get; set; }
-
-        public string state { get; set; }
-    }
-   
 }
