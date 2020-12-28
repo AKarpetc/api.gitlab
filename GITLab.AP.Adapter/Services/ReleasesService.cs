@@ -40,5 +40,33 @@ namespace GITLab.AP.Adapter.Services
             return collection;
         }
 
+        public Release Create(AddRelease model)
+        {
+            WebRequest request = WebRequest.Create($"{_url}releases");
+            request.Headers.Add($"Private-Token:{_privateToken}");
+            request.ContentType = "application/json";
+            request.Method = "POST";
+
+            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+            {
+                string json = JsonConvert.SerializeObject(model);
+
+                streamWriter.Write(json);
+            }
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            Stream dataStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream);
+            string responseFromServer = reader.ReadToEnd();
+            var release = JsonConvert.DeserializeObject<Release>(responseFromServer);
+
+            reader.Close();
+            dataStream.Close();
+            response.Close();
+
+            return release;
+        }
+
     }
 }

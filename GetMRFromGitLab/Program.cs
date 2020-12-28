@@ -14,6 +14,7 @@ namespace GetMRFromGitLab
 {
     class Program
     {
+        private const string RELEASE_NAME = "Релиз системы спринта за ";
         static MergeRequestService mergeRequestService;
         static ReleasesService releasesService;
         static Program()
@@ -93,8 +94,6 @@ namespace GetMRFromGitLab
         }
         static void Main(string[] args)
         {
-
-
             var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
 
             //ListToExcel(mrs.ToList());
@@ -106,6 +105,35 @@ namespace GetMRFromGitLab
 
         static void CreateRelease(List<MergeRequestGet> mrs, string dates, string version)
         {
+            ToExcell(mrs, dates, version);
+
+            ToGit(mrs, dates, version);
+
+        }
+
+        private static void ToGit(List<MergeRequestGet> mrs, string dates, string version)
+        {
+            var descriptoin = "";
+
+            int number = 1;
+            foreach (var mr in mrs)
+            {
+                descriptoin += $"{(number)}. {mr.title} {mr.description}\n\n";
+                number++;
+            }
+
+            var newRelease = new AddRelease()
+            {
+                tag_name = version,
+                description = descriptoin,
+                name = RELEASE_NAME + dates
+            };
+
+            releasesService.Create(newRelease);
+        }
+
+        private static void ToExcell(List<MergeRequestGet> mrs, string dates, string version)
+        {
             using (ExcelPackage excel = new ExcelPackage())
             {
                 excel.Workbook.Worksheets.Add("Worksheet1");
@@ -113,7 +141,7 @@ namespace GetMRFromGitLab
 
                 int i = 1;
 
-                excelWorksheet.Cells[i, 1].Value = "Релиз системы спринта за " + dates;
+                excelWorksheet.Cells[i, 1].Value = RELEASE_NAME + dates;
 
                 i = i + 2;
                 int number = 1;
@@ -122,7 +150,7 @@ namespace GetMRFromGitLab
                     excelWorksheet.Cells[i, 1].Value = (number).ToString();
                     excelWorksheet.Cells[i, 2].Value = mr.title;
                     excelWorksheet.Cells[i, 3].Value = mr.description;
-                    i=i+2;
+                    i = i + 2;
                     number++;
                 }
                 i = i + 2;
@@ -145,7 +173,6 @@ namespace GetMRFromGitLab
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Файл сохранен по пути " + fileName);
             }
-
         }
 
         static void GetFromReleaseToRelease()
@@ -173,6 +200,7 @@ namespace GetMRFromGitLab
             var version = lastRelease.tag_name.Split('.')[0] + "." + (Convert.ToInt32(lastRelease.tag_name.Split('.')[1]) + 1).ToString();
 
             CreateRelease(mrsToRelease.ToList(), dates, version);
+
         }
     }
 }
