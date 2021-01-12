@@ -107,7 +107,10 @@ namespace GetMRFromGitLab
 
             //ListToExcel(mrs.ToList());
 
-            CreateRelease();
+            CreateRelease().ContinueWith(x =>
+            {
+
+            });
 
             //releasesService.Delete("v1.10005");
 
@@ -188,9 +191,10 @@ namespace GetMRFromGitLab
             }
         }
 
-        static void CreateRelease()
+        static async Task CreateRelease()
         {
-            var mrs = client.MergeRequest.GetAll(DateTime.Now.AddDays(MR_COUNT_DAY * -1)).Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
+            var mrs = (await client.MergeRequest.GetAll(DateTime.Now.AddDays(MR_COUNT_DAY * -1)))
+                      .Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
 
             var lastMRReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
 
@@ -204,7 +208,7 @@ namespace GetMRFromGitLab
                 return;
             }
 
-            var releases = client.Release.GetAllReleases();
+            var releases = await client.Release.GetAllReleases();
 
             var dates = lastMRReleases.merged_at.ToString("dd.MM.yy") + "-" + firstMRReleases.merged_at.ToString("dd.MM.yy");
 

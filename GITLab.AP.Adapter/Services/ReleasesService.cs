@@ -15,84 +15,24 @@ namespace GITLab.AP.Adapter.Services
     {
         private readonly string _url;
         private readonly string _privateToken;
+        private readonly IRequestService _request;
 
         public ReleasesService(string url, string privateToken)
         {
             _url = url;
             _privateToken = privateToken;
+            _request = new RequestService(_privateToken);
         }
 
-        public IEnumerable<Release> GetAllReleases()
-        {
-            WebRequest request = WebRequest.Create($"{_url}releases");
-            request.Headers.Add($"Private-Token:{_privateToken}");
+        public async Task<IEnumerable<Release>> GetAllReleases() =>
+               await _request.GetListAsync<Release>($"{_url}releases");
 
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
-            Stream dataStream = response.GetResponseStream();
-            StreamReader reader = new StreamReader(dataStream);
-            string responseFromServer = reader.ReadToEnd();
-            var collection = JsonConvert.DeserializeObject<List<Release>>(responseFromServer);
+        public async Task<Release> Create(AddRelease model) =>
+               await _request.PostAsync<AddRelease, Release>(model, $"{_url}releases");
 
-            reader.Close();
-            dataStream.Close();
-            response.Close();
 
-            return collection;
-        }
-
-        public Release Create(AddRelease model)
-        {
-            WebRequest request = WebRequest.Create($"{_url}releases");
-            request.Headers.Add($"Private-Token:{_privateToken}");
-
-            request.ContentType = "application/json";
-            request.Method = "POST";
-
-            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
-            {
-                string json = JsonConvert.SerializeObject(model);
-
-                streamWriter.Write(json);
-            }
-
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-            Stream dataStream = response.GetResponseStream();
-            StreamReader reader = new StreamReader(dataStream);
-            string responseFromServer = reader.ReadToEnd();
-            var release = JsonConvert.DeserializeObject<Release>(responseFromServer);
-
-            reader.Close();
-            dataStream.Close();
-            response.Close();
-
-            return release;
-        }
-
-        public Release Delete(string tag_name)
-        {
-            WebRequest request = WebRequest.Create($"{_url}releases/{tag_name}");
-            request.Headers.Add($"Private-Token:{_privateToken}");
-
-            //  request.Headers.Add($"User-Agent:GitLabKazzincBot");
-
-            request.ContentType = "application/json";
-            request.Method = "DELETE";
-
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-            Stream dataStream = response.GetResponseStream();
-            StreamReader reader = new StreamReader(dataStream);
-            string responseFromServer = reader.ReadToEnd();
-            var release = JsonConvert.DeserializeObject<Release>(responseFromServer);
-
-            reader.Close();
-            dataStream.Close();
-            response.Close();
-
-            return release;
-        }
-
+        public async Task<Release> Delete(string tag_name) =>
+              await _request.DeleteAsync<Release>($"{_url}releases/{tag_name}");
     }
 }

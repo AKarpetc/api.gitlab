@@ -9,5 +9,9 @@ namespace GITLab.AP.Adapter.Interfaces
     internal interface IRequestService
     {
         Task<IEnumerable<T>> GetListAsync<T>(string url);
+
+        Task<W> PostAsync<T, W>(T model, string url);
+
+        Task<T> DeleteAsync<T>(string url);
     }
 }

@@ -9,10 +9,11 @@ namespace GITLab.AP.Adapter.Interfaces
 {
     public interface IReleasesService
     {
-        IEnumerable<Release> GetAllReleases();
-       
-        Release Create(AddRelease model);
-       
-        Release Delete(string tag_name);
+        Task<IEnumerable<Release>> GetAllReleases();
+
+        Task<Release> Create(AddRelease model);
+
+
+        Task<Release> Delete(string tag_name);
     }
 }

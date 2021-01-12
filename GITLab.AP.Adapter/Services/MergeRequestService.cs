@@ -17,6 +17,7 @@ namespace GITLab.AP.Adapter.Services
         private readonly string _url;
         private readonly string _privateToken;
         private readonly IRequestService _request;
+
         public MergeRequestService(string url, string privateToken)
         {
             _url = url;
