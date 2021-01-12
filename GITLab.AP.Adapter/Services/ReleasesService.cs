@@ -1,4 +1,5 @@
 ﻿using GITLab.AP.Adapter.DTO;
+using GITLab.AP.Adapter.Interfaces;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GITLab.AP.Adapter.Services
 {
-    public class ReleasesService
+    internal class ReleasesService : IReleasesService
     {
         private readonly string _url;
         private readonly string _privateToken;
@@ -73,8 +74,8 @@ namespace GITLab.AP.Adapter.Services
         {
             WebRequest request = WebRequest.Create($"{_url}releases/{tag_name}");
             request.Headers.Add($"Private-Token:{_privateToken}");
-            
-          //  request.Headers.Add($"User-Agent:GitLabKazzincBot");
+
+            //  request.Headers.Add($"User-Agent:GitLabKazzincBot");
 
             request.ContentType = "application/json";
             request.Method = "DELETE";

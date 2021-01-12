@@ -1,4 +1,6 @@
-﻿using GITLab.AP.Adapter.DTO;
+﻿using GITLab.AP.Adapter;
+using GITLab.AP.Adapter.DTO;
+using GITLab.AP.Adapter.Interfaces;
 using GITLab.AP.Adapter.Services;
 using GitLabApiClient;
 using GitLabApiClient.Internal.Paths;
@@ -18,19 +20,20 @@ namespace GetMRFromGitLab
     class Program
     {
         private const string RELEASE_NAME = "Релиз системы спринта за ";
-        static MergeRequestService mergeRequestService;
-        static ReleasesService releasesService;
-        static GitLabClient client;
+        private static IGitAPIFacade client;
+
+        private const int MR_COUNT_DAY = 12;
+
         static Program()
         {
-            var url = "http://git.kazzinc.kz/api/v4/projects/18/";
+            var gitUrl = "http://git.kazzinc.kz/";
+
+            var projectUrl = "api/v4/projects/18/";
+
             var token = "ZBmCg_M-ib9EzY8j2ZHg";
 
-            mergeRequestService = new MergeRequestService(url, token);
+            client = new GitAPIFacade(gitUrl, projectUrl, token);
 
-            releasesService = new ReleasesService(url, token);
-
-            client = new GitLabClient("http://git.kazzinc.kz", token);
         }
 
         static void ListToExcel(List<MergeRequestGet> mrs)
@@ -100,7 +103,7 @@ namespace GetMRFromGitLab
         }
         static void Main(string[] args)
         {
-            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(10));
+            var mrs = client.MergeRequest.GetAll(DateTime.Now.AddDays(10));
 
             //ListToExcel(mrs.ToList());
 
@@ -116,10 +119,7 @@ namespace GetMRFromGitLab
         {
             ToExcell(mrs, dates, version);
 
-            ToGit(mrs, dates, version);
-
-
-
+            //ToGit(mrs, dates, version);
         }
 
         private static void ToGit(List<MergeRequestGet> mrs, string dates, string version)
@@ -142,7 +142,7 @@ namespace GetMRFromGitLab
                 Ref = "Release"
             };
 
-            releasesService.Create(newRelease);
+            client.Release.Create(newRelease);
         }
 
         private static void ToExcell(List<MergeRequestGet> mrs, string dates, string version)
@@ -190,7 +190,7 @@ namespace GetMRFromGitLab
 
         static void CreateRelease()
         {
-            var mrs = mergeRequestService.GetAll(DateTime.Now.AddDays(-12)).Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
+            var mrs = client.MergeRequest.GetAll(DateTime.Now.AddDays(MR_COUNT_DAY * -1)).Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
 
             var lastMRReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
 
@@ -200,11 +200,11 @@ namespace GetMRFromGitLab
 
             if (lastMRReleases == firstMRReleases)
             {
-                Console.WriteLine("За последнии 10 дней найден только 1 релиз");
+                Console.WriteLine("За последнии {0} дней найден только 1 релиз", MR_COUNT_DAY);
                 return;
             }
 
-            var releases = releasesService.GetAllReleases();
+            var releases = client.Release.GetAllReleases();
 
             var dates = lastMRReleases.merged_at.ToString("dd.MM.yy") + "-" + firstMRReleases.merged_at.ToString("dd.MM.yy");
 

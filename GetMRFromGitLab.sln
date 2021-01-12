@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetMRFromGitLab", "GetMRFro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GITLab.AP.Adapter", "GITLab.AP.Adapter\GITLab.AP.Adapter.csproj", "{B8F2011E-2AAE-475A-9483-F5B438176CF3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MMS.ReleaseCreator", "MMS.ReleaseCreator\MMS.ReleaseCreator.csproj", "{84A6AA38-EB09-4A4E-9A47-34D9D1C0A905}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B8F2011E-2AAE-475A-9483-F5B438176CF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8F2011E-2AAE-475A-9483-F5B438176CF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8F2011E-2AAE-475A-9483-F5B438176CF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84A6AA38-EB09-4A4E-9A47-34D9D1C0A905}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84A6AA38-EB09-4A4E-9A47-34D9D1C0A905}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84A6AA38-EB09-4A4E-9A47-34D9D1C0A905}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84A6AA38-EB09-4A4E-9A47-34D9D1C0A905}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

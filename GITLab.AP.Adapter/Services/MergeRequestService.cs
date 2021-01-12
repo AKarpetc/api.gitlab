@@ -1,5 +1,6 @@
 ﻿using GITLab.AP.Adapter.DTO;
 using GITLab.AP.Adapter.DTO.Enums;
+using GITLab.AP.Adapter.Interfaces;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -11,18 +12,19 @@ using System.Threading.Tasks;
 
 namespace GITLab.AP.Adapter.Services
 {
-    public class MergeRequestService
+    internal class MergeRequestService : IMergeRequestService
     {
         private readonly string _url;
         private readonly string _privateToken;
-
+        private readonly IRequestService _request;
         public MergeRequestService(string url, string privateToken)
         {
             _url = url;
             _privateToken = privateToken;
+            _request = new RequestService(_privateToken);
         }
 
-        public IEnumerable<MergeRequestGet> GetAll(DateTime dateStart, MergeStates state = MergeStates.merged)
+        public async Task<IEnumerable<MergeRequestGet>> GetAll(DateTime dateStart, MergeStates state = MergeStates.merged)
         {
             var mrCollection = new List<MergeRequestGet>();
 
@@ -30,15 +32,8 @@ namespace GITLab.AP.Adapter.Services
             int count = 1;
             while (count > 0)
             {
-                WebRequest request = WebRequest.Create($"{_url}merge_requests?&sort=desc&state={state}&scope=all&page=" + i);
-                request.Headers.Add($"Private-Token:{_privateToken}");
+                var collection = await _request.GetListAsync<MergeRequestGet>($"{_url}merge_requests?&sort=desc&state={state}&scope=all&page=" + i);
 
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                Stream dataStream = response.GetResponseStream();
-                StreamReader reader = new StreamReader(dataStream);
-                string responseFromServer = reader.ReadToEnd();
-                var collection = JsonConvert.DeserializeObject<List<MergeRequestGet>>(responseFromServer);
                 count = collection.Count();
                 mrCollection.AddRange(collection.Where(x => x.merged_at > dateStart));
 
@@ -46,10 +41,6 @@ namespace GITLab.AP.Adapter.Services
                 {
                     break;
                 }
-
-                reader.Close();
-                dataStream.Close();
-                response.Close();
 
                 i++;
             }
