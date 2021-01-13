@@ -122,7 +122,7 @@ namespace GetMRFromGitLab
         {
             ToExcell(mrs, dates, version);
 
-            //ToGit(mrs, dates, version);
+            ToGit(mrs, dates, version);
         }
 
         private static void ToGit(List<MergeRequestGet> mrs, string dates, string version)
