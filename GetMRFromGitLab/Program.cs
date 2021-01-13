@@ -103,16 +103,19 @@ namespace GetMRFromGitLab
         }
         static void Main(string[] args)
         {
-            var mrs = client.MergeRequest.GetAll(DateTime.Now.AddDays(10));
+            //var mrs = client.MergeRequest.GetAll(DateTime.Now.AddDays(10));
 
             //ListToExcel(mrs.ToList());
 
-            CreateRelease().ContinueWith(x =>
+            //CreateRelease().ContinueWith(x =>
+            //{
+
+            //});
+
+            client.Release.Delete("v1.10006").ContinueWith(r =>
             {
-
+                Console.WriteLine("Релиз удален!");
             });
-
-            //releasesService.Delete("v1.10005");
 
 
             Console.ReadLine();
