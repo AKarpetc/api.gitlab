@@ -15,7 +15,7 @@ namespace MMS.ReleaseCreator
     {
         private const string RELEASE_NAME = "Релиз системы спринта за ";
         private static IGitAPIFacade client;
-        private const int MR_COUNT_DAY = 8;
+        private const int MR_COUNT_DAY = 20;
         private static string buildId;
 
         static Program()
@@ -106,7 +106,16 @@ namespace MMS.ReleaseCreator
             int number = 1;
             foreach (var mr in mrs)
             {
-                descriptoin += $"{(number)}. {mr.title} {mr.description}\n\n";
+                var labels = string.Join(", ", mr.Labels.Select(x =>
+                   {
+                       if (x == "HotFix")
+                       {
+                           return $"[-  {x}  -]";
+                       }
+                       return "";
+                   }));
+
+                descriptoin += $"{(number)} {labels}.  {mr.title} {mr.description}. \n\n";
                 number++;
             }
 
