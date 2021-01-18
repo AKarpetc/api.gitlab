@@ -112,7 +112,7 @@ namespace GetMRFromGitLab
 
             //});
 
-            client.Release.Delete("v1.10006").ContinueWith(r =>
+            client.Release.Delete("v1.10008").ContinueWith(r =>
             {
                 Console.WriteLine("Релиз удален!");
             });

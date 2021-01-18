@@ -47,14 +47,27 @@ namespace MMS.ReleaseCreator
             {
                 if (res.IsFaulted)
                 {
+                    Console.WriteLine($"Ошибка выполнение {res.Exception}");
                     throw res.Exception;
                 }
 
-                Console.WriteLine("Выполнено успешно");
+                if (!res.Result)
+                {
+                    Console.WriteLine("Релиз не был создан.");
+                } else
+                {
+                    Console.WriteLine("Релиз создан");
+
+                }
+
             });
+
+#if DEBUG
+            Console.ReadLine();
+#endif
         }
 
-        static async Task CreateRelease()
+        static async Task<bool> CreateRelease()
         {
             var mrs = (await client.MergeRequest.GetAll(DateTime.Now.AddDays(MR_COUNT_DAY * -1)))
                       .Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
@@ -65,13 +78,13 @@ namespace MMS.ReleaseCreator
 
             var firstMRReleases = mrs.OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
 
-            var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at);
+            var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at.AddMinutes(1));
 
             if (lastMRReleases == firstMRReleases)
             {
                 var message = $"За последнии {MR_COUNT_DAY} дней найден только 1 релиз";
                 Console.WriteLine(message);
-                return;
+                return false;
             }
 
             var lastMr = mrs.OrderByDescending(x => x.created_at).FirstOrDefault();
@@ -79,7 +92,7 @@ namespace MMS.ReleaseCreator
             if (!lastMr.Labels.Contains("Release"))
             {
                 Console.WriteLine("Хот фикс не инициирует создания релиза!");
-                return;
+                return false;
             }
 
             var releases = await client.Release.GetAllReleases();
@@ -97,6 +110,8 @@ namespace MMS.ReleaseCreator
             Console.WriteLine($"Новая версия: {version}, название релиза: {RELEASE_NAME + dates}");
 
             await ToGit(mrsToRelease.ToList(), dates, version);
+
+            return true;
         }
 
         private static async Task ToGit(List<MergeRequestGet> mrs, string dates, string version)
