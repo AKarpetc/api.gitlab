@@ -88,7 +88,7 @@ namespace MMS.ReleaseCreator
                 return false;
             }
 
-            var lastMr = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.created_at).FirstOrDefault();
+            var lastMr = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.merged_at).FirstOrDefault();
 
             if (!lastMr.Labels.Contains("Release"))
             {
