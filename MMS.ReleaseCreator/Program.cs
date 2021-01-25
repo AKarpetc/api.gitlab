@@ -15,7 +15,7 @@ namespace MMS.ReleaseCreator
     {
         private const string RELEASE_NAME = "Релиз системы спринта за ";
         private static IGitAPIFacade client;
-        private const int MR_COUNT_DAY = 20;
+        private const int MR_COUNT_DAY = 12;
         private static string buildId;
 
         static Program()
@@ -79,7 +79,7 @@ namespace MMS.ReleaseCreator
 
             var firstMRReleases = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
 
-            var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at.AddMinutes(1));
+            var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at);
 
             if (lastMRReleases == firstMRReleases)
             {
@@ -110,7 +110,7 @@ namespace MMS.ReleaseCreator
 
             Console.WriteLine($"Новая версия: {version}, название релиза: {RELEASE_NAME + dates}");
 
-            await ToGit(mrsToRelease.ToList(), dates, version);
+            await ToGit(mrsToRelease.OrderBy(x => x.merged_at).ToList(), dates, version);
 
             return true;
         }
@@ -129,7 +129,7 @@ namespace MMS.ReleaseCreator
                            return $"[-  {x}  -]";
                        }
                        return "";
-                   }));
+                   }).Where(x => x != ""));
 
                 descriptoin += $"{(number)} {labels}.  {mr.title} {mr.description}. \n\n";
                 number++;
