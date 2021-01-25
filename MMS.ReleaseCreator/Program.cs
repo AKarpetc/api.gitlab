@@ -54,7 +54,8 @@ namespace MMS.ReleaseCreator
                 if (!res.Result)
                 {
                     Console.WriteLine("Релиз не был создан.");
-                } else
+                }
+                else
                 {
                     Console.WriteLine("Релиз создан");
 
@@ -74,9 +75,9 @@ namespace MMS.ReleaseCreator
 
             Console.WriteLine($"За последнии {MR_COUNT_DAY} дней найдено {mrs.Count()} запросов на слияние");
 
-            var lastMRReleases = mrs.OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
+            var lastMRReleases = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
 
-            var firstMRReleases = mrs.OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
+            var firstMRReleases = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
 
             var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at.AddMinutes(1));
 
@@ -87,7 +88,7 @@ namespace MMS.ReleaseCreator
                 return false;
             }
 
-            var lastMr = mrs.OrderByDescending(x => x.created_at).FirstOrDefault();
+            var lastMr = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.created_at).FirstOrDefault();
 
             if (!lastMr.Labels.Contains("Release"))
             {
