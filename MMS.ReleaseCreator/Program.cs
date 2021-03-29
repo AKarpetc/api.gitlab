@@ -15,8 +15,9 @@ namespace MMS.ReleaseCreator
     {
         private const string RELEASE_NAME = "Релиз системы спринта за ";
         private static IGitAPIFacade client;
-        private const int MR_COUNT_DAY = 12;
+        private const int MR_COUNT_DAY = 15;
         private static string buildId;
+        private static List<string> NOT_INCLUDED_LABELS = new List<string> { "FixTesting", "NoRelease" };
 
         static Program()
         {
@@ -71,7 +72,8 @@ namespace MMS.ReleaseCreator
         static async Task<bool> CreateRelease()
         {
             var mrs = (await client.MergeRequest.GetAll(DateTime.Now.AddDays(MR_COUNT_DAY * -1)))
-                      .Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
+                      .Where(x => !x.Labels.Any(l => NOT_INCLUDED_LABELS.Contains(l)))
+                .Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
 
             Console.WriteLine($"За последнии {MR_COUNT_DAY} дней найдено {mrs.Count()} запросов на слияние");
 
@@ -127,6 +129,11 @@ namespace MMS.ReleaseCreator
                        if (x == "HotFix")
                        {
                            return $"[-  {x}  -]";
+                       }
+
+                       if (x == "Refactoring" || x == "Improve")
+                       {
+                           return $"[+  {x}  +]";
                        }
                        return "";
                    }).Where(x => x != ""));

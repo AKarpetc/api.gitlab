@@ -112,7 +112,7 @@ namespace GetMRFromGitLab
 
             //});
 
-            client.Release.Delete("v1.10008").ContinueWith(r =>
+            client.Release.Delete("v1.10013").ContinueWith(r =>
             {
                 Console.WriteLine("Релиз удален!");
             });
@@ -141,7 +141,7 @@ namespace GetMRFromGitLab
 
             var newRelease = new AddRelease()
             {
-                tag_name = "v1.10005",
+                tag_name = "v1.10013",
                 description = descriptoin,
                 name = RELEASE_NAME + dates,
                 assets = new Assets(),
