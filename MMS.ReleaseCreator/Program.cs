@@ -1,12 +1,9 @@
 ﻿using GITLab.AP.Adapter;
 using GITLab.AP.Adapter.DTO;
 using GITLab.AP.Adapter.Interfaces;
-using GITLab.AP.Adapter.Services;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MMS.ReleaseCreator
@@ -32,7 +29,7 @@ namespace MMS.ReleaseCreator
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Начала выполнение!");
+            Console.WriteLine("Начало выполнения!");
 
             if (args.Count() > 0)
             {
@@ -48,7 +45,7 @@ namespace MMS.ReleaseCreator
             {
                 if (res.IsFaulted)
                 {
-                    Console.WriteLine($"Ошибка выполнение {res.Exception}");
+                    Console.WriteLine($"Ошибка выполнения {res.Exception}");
                     throw res.Exception;
                 }
 
@@ -58,10 +55,8 @@ namespace MMS.ReleaseCreator
                 }
                 else
                 {
-                    Console.WriteLine("Релиз создан");
-
+                    Console.WriteLine("Релиз создан.");
                 }
-
             });
 
 #if DEBUG
@@ -75,7 +70,7 @@ namespace MMS.ReleaseCreator
                       .Where(x => !x.Labels.Any(l => NOT_INCLUDED_LABELS.Contains(l)))
                 .Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
 
-            Console.WriteLine($"За последнии {MR_COUNT_DAY} дней найдено {mrs.Count()} запросов на слияние");
+            Console.WriteLine($"За последние {MR_COUNT_DAY} дней найдено {mrs.Count()} запросов на слияние");
 
             var lastMRReleases = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
 
@@ -85,7 +80,7 @@ namespace MMS.ReleaseCreator
 
             if (lastMRReleases == firstMRReleases)
             {
-                var message = $"За последнии {MR_COUNT_DAY} дней найден только 1 релиз";
+                var message = $"За последние {MR_COUNT_DAY} дней найден только 1 релиз";
                 Console.WriteLine(message);
                 return false;
             }
@@ -94,7 +89,7 @@ namespace MMS.ReleaseCreator
 
             if (!lastMr.Labels.Contains("Release"))
             {
-                Console.WriteLine("Хот фикс не инициирует создания релиза!");
+                Console.WriteLine("Хот фикс не инициирует создание релиза!");
                 return false;
             }
 
@@ -148,8 +143,7 @@ namespace MMS.ReleaseCreator
                 description = descriptoin,
                 name = RELEASE_NAME + dates,
                 assets = new Assets(),
-                Ref = "Release",
-
+                Ref = "Release"
             };
 
             if (buildId != null)
@@ -162,14 +156,11 @@ namespace MMS.ReleaseCreator
                          name="Build",
                          external=true,
                          link_type="other"
-
                     }}).ToArray()
-
                 };
             }
 
             await client.Release.Create(newRelease);
         }
     }
-
 }
