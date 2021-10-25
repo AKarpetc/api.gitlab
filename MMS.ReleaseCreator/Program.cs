@@ -68,22 +68,28 @@ namespace MMS.ReleaseCreator
         {
             var mrs = (await client.MergeRequest.GetAll(DateTime.Now.AddDays(MR_COUNT_DAY * -1)))
                       .Where(x => !x.Labels.Any(l => NOT_INCLUDED_LABELS.Contains(l)))
-                .Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
+                      .Where(x => x.target_branch == "Develop" || x.target_branch == "Release");
+
+            var onlyReleasesMrs = (await client.MergeRequest.GetAll(DateTime.Now.AddDays(MR_COUNT_DAY * -1)))
+                      .Where(x => !x.Labels.Any(l => NOT_INCLUDED_LABELS.Contains(l)))
+                      .Where(x => x.target_branch == "Release" && (x.Labels.Contains("Release") || x.title.StartsWith("Release"))).ToList();
 
             Console.WriteLine($"За последние {MR_COUNT_DAY} дней найдено {mrs.Count()} запросов на слияние");
 
-            var lastMRReleases = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.merged_at).LastOrDefault(x => x.Labels.Contains("Release"));
+            var firstMRReleases = onlyReleasesMrs.OrderByDescending(x => x.merged_at).FirstOrDefault();
 
-            var firstMRReleases = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.merged_at).FirstOrDefault(x => x.Labels.Contains("Release"));
+            onlyReleasesMrs.Remove(firstMRReleases);
 
-            var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at);
-
-            if (lastMRReleases == firstMRReleases)
+            if(onlyReleasesMrs.Count()==0)
             {
                 var message = $"За последние {MR_COUNT_DAY} дней найден только 1 релиз";
                 Console.WriteLine(message);
                 return false;
             }
+
+            var lastMRReleases = onlyReleasesMrs.OrderByDescending(x => x.merged_at).FirstOrDefault();
+
+            var mrsToRelease = mrs.Where(x => x.merged_at > lastMRReleases.merged_at && x.merged_at < firstMRReleases.merged_at);
 
             var lastMr = mrs.Where(x => x.target_branch == "Release").OrderByDescending(x => x.merged_at).FirstOrDefault();
 
